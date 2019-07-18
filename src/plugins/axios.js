@@ -19,7 +19,9 @@ const _axios = axios.create(config);
 
 _axios.interceptors.request.use(
   function(config) {
-    config.data = qs.stringify(config.data);
+    if(!(config.data instanceof FormData)){
+      config.data = qs.stringify(config.data);
+    }
     // Do something before request is sent
     return config;
   },
@@ -36,8 +38,8 @@ _axios.interceptors.response.use(
     if(response.data.code!==10000){
       // this.$message.error(response.data.msg);
       // this.$router.push({path: '/index', name: 'index'});
-      alert(response.data.msg);
-      window.location.href = '/';
+      // alert(response.data.msg);
+      // window.location.href = '/';
     }
     return response.data;
   },

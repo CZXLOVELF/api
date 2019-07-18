@@ -54,7 +54,6 @@
                     page:1,
                     size:999999
                 },
-                treeData:[],
                 props1: {
                     label: 'title',
                     children: 'zones',
