@@ -35,11 +35,9 @@ _axios.interceptors.request.use(
 _axios.interceptors.response.use(
   function(response) {
     // Do something with response data
-    if(response.data.code!==10000){
-      // this.$message.error(response.data.msg);
-      // this.$router.push({path: '/index', name: 'index'});
-      // alert(response.data.msg);
-      // window.location.href = '/';
+      if(response.data.code===80002||response.data.code===80000){
+      alert(response.data.msg);
+      window.location.href = '/';
     }
     return response.data;
   },
