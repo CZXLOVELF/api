@@ -6,31 +6,36 @@
                  :rules="formRule"
                  label-width="80px"
                  class="add-form">
-            <el-form-item label="书名" prop="title">
+            <el-form-item label="商品名" prop="title">
                 <el-input v-model="form.title"></el-input>
             </el-form-item>
-            <el-form-item label="作者" prop="author">
-                <el-input v-model="form.author"></el-input>
+            <el-form-item label="单价" prop="price">
+                <el-input v-model="form.price"></el-input>
             </el-form-item>
             <el-form-item label="分类" prop="classifyId">
                 <el-input v-show="false" v-model="form.classifyId"></el-input>
                 <el-input @focus="dialogVisible=true" v-model="form.classifyName"></el-input>
             </el-form-item>
-            <el-form-item label="出版商" prop="publishingHouse">
-                <el-input v-model="form.publishingHouse"></el-input>
-            </el-form-item>
-            <el-form-item label="单价" prop="price">
-                <el-input v-model="form.price"></el-input>
-            </el-form-item>
             <el-form-item label="图片" prop="image">
+                <!--<el-upload-->
+                        <!--action=""-->
+                        <!--class="avatar-uploader"-->
+                        <!--:http-request="uploadImg"-->
+                        <!--:show-file-list="false">-->
+                    <!--<img v-if="form.files" :src="form.files" class="avatar">-->
+                    <!--<i v-else class="el-icon-plus avatar-uploader-icon"></i>-->
+                <!--</el-upload>-->
                 <el-upload
                         action=""
-                        class="avatar-uploader"
                         :http-request="uploadImg"
-                        :show-file-list="false">
-                    <img v-if="form.image" :src="form.image" class="avatar">
-                    <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                        list-type="picture-card"
+                        :on-preview="handlePictureCardPreview"
+                        :before-remove="handleRemove">
+                    <i class="el-icon-plus"></i>
                 </el-upload>
+                <el-dialog :visible.sync="dialogImg">
+                    <img width="100%" :src="dialogImageUrl" alt="">
+                </el-dialog>
             </el-form-item>
             <el-form-item>
                 <el-button type="primary" @click="onSubmit('form')">添加</el-button>
@@ -68,32 +73,24 @@
         data() {
             return {
                 form:{
-                    author:'',
                     title:'',
                     classifyId:'',
-                    image:'',
+                    files:[],
                     price:'',
-                    publishingHouse:'',
                     classifyName:'',
                 },
                 formRule:{
                     title: [
-                        { required: true, message: '请填写书名', trigger: 'blur' }
-                    ],
-                    author: [
-                        { required: true, message: '请填写作者', trigger: 'blur' }
+                        { required: true, message: '请填写商品名', trigger: 'blur' }
                     ],
                     classifyId: [
                         { required: true, message: '请选择分类', trigger: 'change' }
                     ],
-                    image: [
+                    files: [
                         { required: true, message: '请选择图片', trigger: 'change' }
                     ],
                     price: [
                         { required: true, message: '请填写价格', trigger: 'blur' }
-                    ],
-                    publishingHouse: [
-                        { required: true, message: '请填写出版商', trigger: 'blur' }
                     ],
                 },
                 dialogVisible:false,
@@ -105,11 +102,13 @@
                     label: 'title',
                     children: 'zones',
                 },
+                dialogImageUrl: '',
+                dialogImg: false
             }
         },
         methods:{
             show(classifyId,resolve){
-                this.axios.post('/background/manage/getBookClassifyList',{...this.getData,classifyId}).then((res)=>{
+                this.axios.post('/background/manage/getSuperiorProductClassifyList',{...this.getData,classifyId}).then((res)=>{
                     if(res.code===10000){
                         return resolve(res.data.records);
                     }
@@ -143,30 +142,45 @@
                 this.dialogVisible = false
             },
             uploadImg(param){
-                this.axios.post('/background/manage/uploadBookImage',{file:param.file}).then((res)=>{
+                this.axios.post('/background/manage/uploadSuperiorProductImage',{file:param.file}).then((res)=>{
                     if(res.code===10000){
-                        this.form.image = res.data;
+                        this.form.files.push(res.data);
                     }
                 })
             },
+            handlePictureCardPreview(file) {
+                this.dialogImageUrl = file.url;
+                this.dialogImg = true;
+            },
+            handleRemove(file, fileList){
+                let index = fileList.findIndex((res)=>{
+                    return res.uid === file.uid;
+                });
+                this.form.files.splice(index,1)
+
+            },
             onSubmit(formName){
+                console.log(this.form);
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
-                        this.axios.post('/background/manage/addBook',this.form).then((res)=>{
+                        this.axios.post('/background/manage/addSuperiorProduct',this.form).then((res)=>{
                             if(res.code===10000){
                                 this.$message({
                                     message: res.msg,
                                     type: 'success'
                                 });
                                 this.$emit('cut','list')
+                            }else {
+                                this.$message.error(res.msg);
                             }
+                        }).catch((err)=>{
+                            this.$message.error('添加失败，请检查');
                         })
                     } else {
                         console.log('error submit!!');
                         return false;
                     }
                 });
-
             },
         }
     }

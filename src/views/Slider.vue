@@ -15,7 +15,7 @@
                 <span>数据管理</span>
             </template>
             <el-menu-item index="book">书本列表</el-menu-item>
-            <el-menu-item index="superiorList">优品列表</el-menu-item>
+            <el-menu-item index="quality">优品列表</el-menu-item>
             <el-menu-item index="slideshow">首页</el-menu-item>
             <el-menu-item index="MenuItem">菜单选项</el-menu-item>
             <el-menu-item index="acquisition">收书页</el-menu-item>

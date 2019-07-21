@@ -3,7 +3,7 @@
         <div class="header-box">
             <el-form :inline="true" :model="pages">
                 <el-form-item>
-                    <el-button @click="addBtn">添加书本</el-button>
+                    <el-button @click="addBtn">添加优品</el-button>
                 </el-form-item>
                 <el-form-item>
                     <el-button @click="classificationBtn">添加分类</el-button>
@@ -36,7 +36,7 @@
                 <el-form-item>
                     <el-button @click="Undercarriage">批量下架</el-button>
                 </el-form-item>
-                <el-form-item label="书本名称">
+                <el-form-item label="优品名称">
                     <el-input v-model="pages.title" type="text"></el-input>
                 </el-form-item>
             </el-form>
@@ -53,22 +53,16 @@
                 <el-table-column
                         label="封面图">
                     <template slot-scope="scope">
-                        <div class="img-box">
-                            <img :src="scope.row.image">
-                        </div>
+                        <el-carousel :interval="4000" type="card" height="70px">
+                            <el-carousel-item v-for="(d,i) of scope.row.image" :key="i">
+                                <img :src="d.image">
+                            </el-carousel-item>
+                        </el-carousel>
                     </template>
                 </el-table-column>
                 <el-table-column
                         prop="title"
                         label="书名">
-                </el-table-column>
-                <el-table-column
-                        prop="author"
-                        label="作者">
-                </el-table-column>
-                <el-table-column
-                        prop="publishingHouse"
-                        label="出版商">
                 </el-table-column>
                 <el-table-column
                         prop="price"
@@ -108,7 +102,6 @@
                         <el-button type="primary" @click="detailsBtn(scope.row.id)" size="small">详情</el-button>
                     </template>
                 </el-table-column>
-
             </el-table>
         </div>
         <div class="footer-box">
@@ -180,7 +173,7 @@
           </span>
         </el-dialog>
         <el-dialog
-                title="书本详情"
+                title="优品详情"
                 :visible.sync="detailsDia"
                 width="40%"
                 @close="handleClose('bookDetails')">
@@ -189,7 +182,7 @@
                          :model="bookDetails"
                          :rules="bookDetailsRule"
                          label-width="140px">
-                    <el-form-item label="书名" prop="title">
+                    <el-form-item label="优品名" prop="title">
                         <el-input
                                 type="text"
                                 v-model="bookDetails.title">
@@ -243,20 +236,33 @@
                     </el-form-item>
                     <el-form-item label="分类" prop="classifyId">
                         <classInput
-                            :classifyId.sync="bookDetails.classifyId"
-                            :classify.sync="bookDetails.classify"
-                            :url="classUrl"
+                                :classifyId.sync="bookDetails.classifyId"
+                                :classify.sync="bookDetails.classify"
+                                :url="classUrl"
                         ></classInput>
                     </el-form-item>
                     <el-form-item label="图片" prop="image">
+                        <!--<el-upload-->
+                                <!--action=""-->
+                                <!--class="avatar-uploader"-->
+                                <!--:http-request="uploadImg"-->
+                                <!--:show-file-list="false">-->
+                            <!--<img v-if="bookDetails.image" :src="bookDetails.image" class="avatar">-->
+                            <!--<i v-else class="el-icon-plus avatar-uploader-icon"></i>-->
+                        <!--</el-upload>-->
                         <el-upload
-                                action=""
-                                class="avatar-uploader"
-                                :http-request="uploadImg"
-                                :show-file-list="false">
-                            <img v-if="bookDetails.image" :src="bookDetails.image" class="avatar">
-                            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                                :action="upLoadUrl"
+                                :with-credentials="true"
+                                list-type="picture-card"
+                                :file-list="bookDetails.image"
+                                :on-preview="handlePictureCardPreview"
+                                :on-success="handleAvatarSuccess"
+                                :on-remove="handleRemove">
+                            <i class="el-icon-plus"></i>
                         </el-upload>
+                        <el-dialog append-to-body :visible.sync="dialogImg">
+                            <img width="100%" :src="dialogImageUrl" alt="">
+                        </el-dialog>
                     </el-form-item>
                 </el-form>
             </div>
@@ -270,10 +276,12 @@
 
 <script>
     import classInput from '@/views/class'
+    import qs from 'qs';
     export default {
         name: "List",
         data() {
             return {
+                upLoadUrl:'http://120.78.157.105:8080/background/manage/uploadSuperiorProductImage',
                 listForm: {},
                 listData: [],
                 total: null,
@@ -307,41 +315,36 @@
                 },
                 discountList:[],
                 bookId:null,
-                bookDetails :{
-                    adminRemark: "",
-                    author: "",
-                    classify: "",
-                    classifyId: "",
+                bookDetails: {
+                    classify: '',
+                    classifyId: null,
                     classifyRecommendWeight: null,
                     classifySort: null,
-                    createTime: "",
+                    createTime: null,
                     deductionPrice: null,
                     deductionRatio: null,
-                    discountEventId: "",
-                    doubanScore: null,
-                    eventDiscount: "",
-                    id: "",
-                    image: "",
-                    introduction: "",
-                    isLike: false,
-                    nowPrice: 0,
-                    onlineState: "",
+                    discountEventId: null,
+                    eventName: null,
+                    id: null,
+                    image: [],
+                    nowPrice: null,
+                    onlineState: null,
                     price: null,
-                    publishingHouse: "",
                     recommendWeight: null,
                     sort: null,
                     star: null,
-                    state: "",
-                    title: "",
-                    updateTime: "",
+                    title: null,
+                    updateTime: null,
                 },
-                classUrl:'/background/manage/getBookClassifyList',
+                dialogImageUrl: '',
+                dialogImg: false,
+                classUrl:'/background/manage/getSuperiorProductClassifyList',
                 bookDetailsRule:{
                     title: [
-                        { required: true, message: '请填写书本名称', trigger: 'blur' }
+                        { required: true, message: '请填写优品名称', trigger: 'blur' }
                     ],
                     price: [
-                        { required: true, message: '请填写书本单价', trigger: 'blur' }
+                        { required: true, message: '请填写优品单价', trigger: 'blur' }
                     ],
                     classifyRecommendWeight: [
                         { required: true, message: '请填写同分类下推荐权重', trigger: 'blur' }
@@ -350,10 +353,10 @@
                         { required: true, message: '请填写同分类下排序权重', trigger: 'blur' }
                     ],
                     deductionPrice: [
-                        { required: true, message: '请填写书金抵扣额度', trigger: 'blur' }
+                        { required: true, message: '请填写优品金抵扣额度', trigger: 'blur' }
                     ],
                     deductionRatio: [
-                        { required: true, message: '请填写书金抵扣比率', trigger: 'blur' }
+                        { required: true, message: '请填写优品金抵扣比率', trigger: 'blur' }
                     ],
                     image: [
                         { required: true, message: '请选择图片', trigger: ['blur','change'] }
@@ -365,8 +368,8 @@
                         { required: true, message: '请填写排序权重', trigger: 'blur' }
                     ],
                     classifyId:[
-                        { required: true, message: '请选择书本分类', trigger: ['blur','change'] }
-                    ]
+                        { required: true, message: '请选择优品分类', trigger: ['blur','change'] }
+                    ],
                 }
             }
         },
@@ -402,11 +405,12 @@
         },
         methods: {
             show() {
-                this.axios.post('/background/manage/getBookList', {...this.listForm, ...this.pages}).then((res) => {
+                this.axios.post('/background/manage/getSuperiorProductList', {...this.listForm, ...this.pages}).then((res) => {
                     if (res.code === 10000) {
                         this.total = Number(res.data.total);
                         this.currentPage = Number(res.data.current);
                         this.listData = res.data.records;
+                        console.log(this.listData);
                     }
                 })
             },
@@ -441,7 +445,7 @@
                 } else {
                     ids = this.selIds
                 }
-                this.axios.post('/background/manage/pushBookByIds', {ids}).then((res) => {
+                this.axios.post('/background/manage/pushSuperiorProductByIds', {ids}).then((res) => {
                     if (res.code === 10000) {
                         this.$message({
                             message: res.msg,
@@ -452,13 +456,13 @@
                 })
             },
             Undercarriage(data) {
-                let ids;
+                let ids = null;
                 if (typeof data === 'string') {
                     ids = [data];
                 } else {
                     ids = this.selIds
                 }
-                this.axios.post('/background/manage/dropBookByIds', {ids}).then((res) => {
+                this.axios.post('/background/manage/dropSuperiorProductByIds', {ids}).then((res) => {
                     if (res.code === 10000) {
                         this.$message({
                             message: res.msg,
@@ -476,24 +480,25 @@
                         this.discountForm.time = [res.data.startTime,res.data.endTime];
                     }
                 });
-                console.log(this.bookDetails);
             },
             discount(id,discountEventId) {
                 this.discountDia = true;
                 if(discountEventId){
                     this.getDiscount(discountEventId)
                 }
-                this.details(id)
+                this.details(id);
             },
             detailsBtn(id){
                 this.details(id);
                 this.detailsDia = true
             },
             details(id){
-                this.axios.post('/background/manage/getBookById',{id}).then((res)=>{
+                this.axios.post('/background/manage/getSuperiorProductById',{id}).then((res)=>{
                     if(res.code===10000){
                         this.bookDetails = res.data;
-                        console.log(this.bookDetails);
+                        for(let i of this.bookDetails.image){
+                            i.url = i.image
+                        }
                     }
                 })
             },
@@ -503,38 +508,61 @@
             handleClose(Form){
                 this.$refs[Form].resetFields()
             },
-            subBtn(){
-                this.axios.post('/background/manage/updateBookById',this.bookDetails).then((res)=>{
+            subBtn(formName){
+                let form = new FormData();
+                for (let i in this.bookDetails) {
+                    if(i==='image')
+                        continue;
+                    form.append(i, this.bookDetails[i]);
+                }
+                for (let n in this.bookDetails.image) {
+                    for(let m in this.bookDetails.image[n]){
+                        form.append('image['+[n]+'].'+m, this.bookDetails.image[n][m]);
+                    }
+                }
+                this.axios.post('/background/manage/updateSuperiorProductById', form).then((res)=>{
                     if(res.code===10000){
                         this.$message({
                             message: res.msg,
                             type: 'success'
                         });
                         this.show();
-                        this.discountDia = false
+                        console.log(formName);
+                        if(formName==='bookDetails'){
+                            this.detailsDia = false
+                        }else {
+                            this.discountDia = false
+                        }
                     }
                 });
             },
-            uploadImg(param){
-                this.axios.post('/background/manage/uploadBookImage',{file:param.file}).then((res)=>{
-                    if(res.code===10000){
-                        this.bookDetails.image = res.data;
-                    }
-                })
+            handleAvatarSuccess(response, file, fileList){
+                console.log(response);
+                console.log(file);
+                console.log(fileList);
+            },
+            handlePictureCardPreview(file){
+                this.dialogImageUrl = file.url;
+                this.dialogImg = true;
+            },
+            handleRemove(file,fileList){
+                console.log(file);
+                console.log(fileList);
             },
             detailSubBtn(formName){
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
-                        this.axios.post('/background/manage/updateBookById',this.bookDetails).then((res)=>{
-                            if(res.code===10000){
-                                this.$message({
-                                    message: res.msg,
-                                    type: 'success'
-                                });
-                                this.show();
-                                this.detailsDia = false
-                            }
-                        });
+                        // this.axios.post('/background/manage/updateBookById',this.bookDetails).then((res)=>{
+                        //     if(res.code===10000){
+                        //         this.$message({
+                        //             message: res.msg,
+                        //             type: 'success'
+                        //         });
+                        //         this.show();
+                        //         this.detailsDia = false
+                        //     }
+                        // });
+                        this.subBtn(formName)
                     } else {
                         console.log('error submit!!');
                         return false;
@@ -576,14 +604,10 @@
         padding-top: 20px;
     }
 
-    .img-box {
-        width: 80px;
-        height: 80px;
-    }
-
     .img-box img {
-        width: 100%;
-        height: 100%;
+        width: 75px;
+        height: 70px;
+        margin: 0 5px;
     }
 
     .footer-box {
@@ -622,5 +646,9 @@
         width: 178px;
         height: 178px;
         display: block;
+    }
+    .el-carousel__item img{
+        width: 100%;
+        height: 100%;
     }
 </style>

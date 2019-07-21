@@ -18,13 +18,17 @@ let config = {
 const _axios = axios.create(config);
 
 _axios.interceptors.request.use(
-  function(config) {
-    if(!(config.data instanceof FormData)){
-      config.data = qs.stringify(config.data);
-    }
-    // Do something before request is sent
-    return config;
-  },
+    function (config) {
+        if (!(config.data instanceof FormData)) {
+            let form = new FormData();
+            for (let i in config.data) {
+                form.append(i, config.data[i]);
+            }
+            config.data = form;
+        }
+        // Do something before request is sent
+        return config;
+    },
   function(error) {
     // Do something with request error
     return Promise.reject(error);

@@ -4,6 +4,8 @@ import Login from '@/components/login'
 import Index from '@/components/Index'
 import Home from './components/home/home'
 import Book from './components/book/book'
+import Quality from './components/Quality/Quality'
+
 
 Vue.use(Router)
 
@@ -24,6 +26,11 @@ export default new Router({
                     path: 'book',
                     name: 'book',
                     component: Book,
+                },
+                {
+                    path: 'quality',
+                    name: 'quality',
+                    component: Quality,
                 },
                 {
                     path: 'home',
