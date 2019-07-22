@@ -13,9 +13,11 @@
                         <el-input v-model="loginForm.userName"></el-input>
                     </el-form-item>
                     <el-form-item label="密码" prop="password">
-                        <el-input type="password" v-model="loginForm.password"></el-input>
+                        <el-input type="password" @keyup.enter.native="submitForm('loginForm')" v-model="loginForm.password"></el-input>
                     </el-form-item>
-                    <el-button class="sub-btn" type="primary" @click="submitForm('loginForm')">登录</el-button>
+                    <el-form-item>
+                        <el-button class="sub-btn" type="primary" @click="submitForm('loginForm')">登录</el-button>
+                    </el-form-item>
                 </el-form>
             </div>
         </div>
@@ -57,7 +59,7 @@
                         return false;
                     }
                 });
-            }
+            },
         }
     }
 </script>

@@ -17,14 +17,6 @@
                 <el-input @focus="dialogVisible=true" v-model="form.classifyName"></el-input>
             </el-form-item>
             <el-form-item label="图片" prop="image">
-                <!--<el-upload-->
-                        <!--action=""-->
-                        <!--class="avatar-uploader"-->
-                        <!--:http-request="uploadImg"-->
-                        <!--:show-file-list="false">-->
-                    <!--<img v-if="form.files" :src="form.files" class="avatar">-->
-                    <!--<i v-else class="el-icon-plus avatar-uploader-icon"></i>-->
-                <!--</el-upload>-->
                 <el-upload
                         action=""
                         :http-request="uploadImg"
@@ -157,13 +149,15 @@
                     return res.uid === file.uid;
                 });
                 this.form.files.splice(index,1)
-
             },
             onSubmit(formName){
-                console.log(this.form);
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
-                        this.axios.post('/background/manage/addSuperiorProduct',this.form).then((res)=>{
+                        let form = new FormData();
+                        for (let i in this.form) {
+                            form.append(i, this.form[i]);
+                        }
+                        this.axios.post('/background/manage/addSuperiorProduct',form).then((res)=>{
                             if(res.code===10000){
                                 this.$message({
                                     message: res.msg,

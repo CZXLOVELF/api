@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="main">
         <div class="header-box">
             <el-form :inline="true" :model="pages">
                 <el-form-item>
@@ -476,7 +476,6 @@
                         this.discountForm.time = [res.data.startTime,res.data.endTime];
                     }
                 });
-                console.log(this.bookDetails);
             },
             discount(id,discountEventId) {
                 this.discountDia = true;
@@ -493,7 +492,6 @@
                 this.axios.post('/background/manage/getBookById',{id}).then((res)=>{
                     if(res.code===10000){
                         this.bookDetails = res.data;
-                        console.log(this.bookDetails);
                     }
                 })
             },
@@ -565,7 +563,7 @@
     }
 
     .main {
-        padding: 20px;
+        width: 100%;
     }
 
     .header-box {
@@ -573,6 +571,7 @@
     }
 
     .body-box {
+        width: 100%;
         padding-top: 20px;
     }
 

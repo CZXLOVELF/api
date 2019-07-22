@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="main">
         <div class="header-box">
             <el-form :inline="true" :model="pages">
                 <el-form-item>
@@ -241,28 +241,55 @@
                                 :url="classUrl"
                         ></classInput>
                     </el-form-item>
-                    <el-form-item label="图片" prop="image">
-                        <!--<el-upload-->
-                                <!--action=""-->
-                                <!--class="avatar-uploader"-->
-                                <!--:http-request="uploadImg"-->
-                                <!--:show-file-list="false">-->
-                            <!--<img v-if="bookDetails.image" :src="bookDetails.image" class="avatar">-->
-                            <!--<i v-else class="el-icon-plus avatar-uploader-icon"></i>-->
-                        <!--</el-upload>-->
-                        <el-upload
-                                :action="upLoadUrl"
-                                :with-credentials="true"
-                                list-type="picture-card"
-                                :file-list="bookDetails.image"
-                                :on-preview="handlePictureCardPreview"
-                                :on-success="handleAvatarSuccess"
-                                :on-remove="handleRemove">
-                            <i class="el-icon-plus"></i>
-                        </el-upload>
-                        <el-dialog append-to-body :visible.sync="dialogImg">
-                            <img width="100%" :src="dialogImageUrl" alt="">
-                        </el-dialog>
+                    <el-form-item label="轮播图" prop="addImage">
+                        <div class="rotary">
+                            <div class="rotary-image-box"
+                                 v-for="(d,i) of bookDetails.image"
+                                 :key="i" >
+                                <img class="rotary-image"
+                                     :src="d.image">
+                                <div class="delete-btn" @click="deleteBtn(d)"></div>
+                                <el-form :model="d" class="form" size="mini">
+                                    <el-form-item>
+                                        <el-input v-model="d.playSecond" class="transparent">
+                                            <template slot="prepend">秒</template>
+                                        </el-input>
+                                    </el-form-item>
+                                    <el-form-item>
+                                        <el-input v-model="d.sort" class="transparent">
+                                            <template slot="prepend">排序</template>
+                                        </el-input>
+                                    </el-form-item>
+                                </el-form>
+                            </div>
+                            <div class="rotary-image-box"
+                                 v-for="(d,l) of bookDetails.addImage"
+                                 :key="-(l+1)" >
+                                <img class="rotary-image"
+                                     :src="d.image">
+                                <div class="delete-btn" @click="deleteBtn(d)"></div>
+                                <el-form :model="d" class="form" size="mini">
+                                    <el-form-item>
+                                        <el-input v-model="d.playSecond" class="transparent">
+                                            <template slot="prepend">秒</template>
+                                        </el-input>
+                                    </el-form-item>
+                                    <el-form-item>
+                                        <el-input v-model="d.sort" class="transparent">
+                                            <template slot="prepend">排序</template>
+                                        </el-input>
+                                    </el-form-item>
+                                </el-form>
+                            </div>
+                            <el-upload
+                                    class="upload-box"
+                                    :action="upLoadUrl"
+                                    :show-file-list="false"
+                                    :with-credentials="true"
+                                    :on-success="handleAvatarSuccess">
+                                <i class="el-icon-plus avatar-uploader-icon"></i>
+                            </el-upload>
+                        </div>
                     </el-form-item>
                 </el-form>
             </div>
@@ -276,10 +303,16 @@
 
 <script>
     import classInput from '@/views/class'
-    import qs from 'qs';
     export default {
         name: "List",
         data() {
+            let addImage = (rule, value, callback) => {
+                if (value.length===0&&this.bookDetails.image.length===0) {
+                    return callback(new Error('请选择轮播图'));
+                }else {
+                    callback();
+                }
+            };
             return {
                 upLoadUrl:'http://120.78.157.105:8080/background/manage/uploadSuperiorProductImage',
                 listForm: {},
@@ -327,6 +360,7 @@
                     eventName: null,
                     id: null,
                     image: [],
+                    addImage: [],
                     nowPrice: null,
                     onlineState: null,
                     price: null,
@@ -335,6 +369,7 @@
                     star: null,
                     title: null,
                     updateTime: null,
+                    removeImage:[]
                 },
                 dialogImageUrl: '',
                 dialogImg: false,
@@ -358,8 +393,8 @@
                     deductionRatio: [
                         { required: true, message: '请填写优品金抵扣比率', trigger: 'blur' }
                     ],
-                    image: [
-                        { required: true, message: '请选择图片', trigger: ['blur','change'] }
+                    addImage: [
+                        { required: true, validator: addImage, trigger: ['blur','change'] }
                     ],
                     recommendWeight: [
                         { required: true, message: '请填写推荐权重', trigger: 'blur' }
@@ -410,7 +445,6 @@
                         this.total = Number(res.data.total);
                         this.currentPage = Number(res.data.current);
                         this.listData = res.data.records;
-                        console.log(this.listData);
                     }
                 })
             },
@@ -495,10 +529,7 @@
             details(id){
                 this.axios.post('/background/manage/getSuperiorProductById',{id}).then((res)=>{
                     if(res.code===10000){
-                        this.bookDetails = res.data;
-                        for(let i of this.bookDetails.image){
-                            i.url = i.image
-                        }
+                        this.bookDetails = {...this.bookDetails,...res.data};
                     }
                 })
             },
@@ -506,12 +537,17 @@
                 this.getDiscount(id);
             },
             handleClose(Form){
-                this.$refs[Form].resetFields()
+                this.$refs[Form].resetFields();
+                this.bookDetails.addImage = [];
+                this.bookDetails.removeImage = []
             },
             subBtn(formName){
                 let form = new FormData();
+                if(this.bookDetails.removeImage.length===0){
+                    delete this.bookDetails.removeImage
+                }
                 for (let i in this.bookDetails) {
-                    if(i==='image')
+                    if(i==='image'||i==='addImage')
                         continue;
                     form.append(i, this.bookDetails[i]);
                 }
@@ -520,6 +556,12 @@
                         form.append('image['+[n]+'].'+m, this.bookDetails.image[n][m]);
                     }
                 }
+                for (let n in this.bookDetails.addImage) {
+                    for(let m in this.bookDetails.addImage[n]){
+                        form.append('addImage['+[n]+'].'+m, this.bookDetails.addImage[n][m]);
+                    }
+                }
+
                 this.axios.post('/background/manage/updateSuperiorProductById', form).then((res)=>{
                     if(res.code===10000){
                         this.$message({
@@ -527,7 +569,6 @@
                             type: 'success'
                         });
                         this.show();
-                        console.log(formName);
                         if(formName==='bookDetails'){
                             this.detailsDia = false
                         }else {
@@ -536,32 +577,18 @@
                     }
                 });
             },
-            handleAvatarSuccess(response, file, fileList){
-                console.log(response);
-                console.log(file);
-                console.log(fileList);
-            },
-            handlePictureCardPreview(file){
-                this.dialogImageUrl = file.url;
-                this.dialogImg = true;
-            },
-            handleRemove(file,fileList){
-                console.log(file);
-                console.log(fileList);
+            handleAvatarSuccess(response){
+                let rotary = {
+                    id: "",
+                    image: response.data,
+                    playSecond: "5",
+                    sort: "0",
+                };
+                this.bookDetails.addImage.push(rotary)
             },
             detailSubBtn(formName){
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
-                        // this.axios.post('/background/manage/updateBookById',this.bookDetails).then((res)=>{
-                        //     if(res.code===10000){
-                        //         this.$message({
-                        //             message: res.msg,
-                        //             type: 'success'
-                        //         });
-                        //         this.show();
-                        //         this.detailsDia = false
-                        //     }
-                        // });
                         this.subBtn(formName)
                     } else {
                         console.log('error submit!!');
@@ -575,6 +602,20 @@
             },
             handleCurrentChange(val) {
                 this.pages.page = val
+            },
+            deleteBtn(data){
+                if(data.id){
+                    let index = this.bookDetails.image.findIndex((res)=>{
+                        return res.image ===data.image
+                    });
+                    this.bookDetails.image.splice(index,1);
+                    this.bookDetails.removeImage.push(data.id);
+                }else {
+                    let index = this.bookDetails.addImage.findIndex((res)=>{
+                        return res.image ===data.image
+                    });
+                    this.bookDetails.addImage.splice(index,1)
+                }
             },
             addBtn() {
                 this.$emit('cut', 'add')
@@ -593,7 +634,7 @@
     }
 
     .main {
-        padding: 20px;
+        width: 100%;
     }
 
     .header-box {
@@ -601,6 +642,7 @@
     }
 
     .body-box {
+        width: 100%;
         padding-top: 20px;
     }
 
@@ -624,7 +666,7 @@
         box-sizing: border-box;
         padding: 20px;
     }
-    /deep/.avatar-uploader .el-upload {
+    /deep/ .el-upload {
         border: 1px dashed #d9d9d9;
         border-radius: 6px;
         cursor: pointer;
@@ -637,9 +679,9 @@
     .avatar-uploader-icon {
         font-size: 28px;
         color: #8c939d;
-        width: 178px;
-        height: 178px;
-        line-height: 178px;
+        width: 148px;
+        height: 148px;
+        line-height: 148px;
         text-align: center;
     }
     .avatar {
@@ -650,5 +692,63 @@
     .el-carousel__item img{
         width: 100%;
         height: 100%;
+    }
+    .rotary{
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .rotary-image-box{
+        position: relative;
+        width: 148px;
+        height: 148px;
+        margin-right: 10px;
+        margin-bottom: 10px;
+    }
+    .rotary-image{
+        border-radius: 5px;
+        height: 148px;
+        width: 148px;
+    }
+    .delete-btn{
+        position: absolute;
+        width: 15px;
+        height: 15px;
+        background: #fd5454;
+        margin: 5px;
+        top: 0;
+        right: 0;
+        border-radius: 100%;
+        cursor: pointer;
+        min-height: 0;
+    }
+    .delete-btn::after{
+        position: absolute;
+        content: "";
+        width: 60%;
+        left: 20%;
+        height: 2px;
+        border-radius: 2px;
+        background: #fff;
+        top: 50%;
+        -webkit-transform: translateY(-50%);
+        transform: translateY(-50%);
+    }
+    .form{
+        width: 120px;
+        margin: 0 auto;
+        position: absolute;
+        bottom: 0;
+        left: 13px;
+        display: none;
+        transition: all 2s;
+    }
+    .el-form-item--mini.el-form-item{
+        margin-bottom: 2px;
+    }
+    .transparent{
+        opacity:0.8
+    }
+    .rotary-image-box:hover .form{
+        display: block;
     }
 </style>

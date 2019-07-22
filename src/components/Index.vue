@@ -41,6 +41,7 @@
 <style scoped>
     .el-container{
         height: 100%;
+        width: 100%;
     }
     .el-header {
         color: #333;
@@ -61,6 +62,7 @@
     .el-main {
         color: #333;
         padding: 0;
+        width: 100%;
     }
     .el-aside::-webkit-scrollbar{
         width: 4px;

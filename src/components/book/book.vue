@@ -43,6 +43,10 @@
 <style scoped>
     .el-container{
         padding: 0;
+        width: 100%;
+    }
+    .el-main{
+        width: 100%;
     }
 .el-header{
     text-align: center;
