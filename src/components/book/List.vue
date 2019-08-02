@@ -86,9 +86,12 @@
                         prop="eventName"
                         label="参与活动">
                     <template slot-scope="scope">
-                        <el-tag class="tag" @click="discount(scope.row.id,scope.row.discountEventId)" type="success">
+                        <el-tag class="tag"
+                                @click="discount(scope.row.id,scope.row.discountEventId)"
+                                :type="scope.row.eventEnd?'danger':'success'">
                             {{eventName(scope.row.eventName)}}
                         </el-tag>
+                        <span class="tip" v-if="scope.row.eventEnd">已过期</span>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -622,4 +625,9 @@
         height: 178px;
         display: block;
     }
+   .tip{
+       font-size: 12px;
+       color: red;
+       margin-left: 10px;
+   }
 </style>

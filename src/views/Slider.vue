@@ -16,11 +16,11 @@
             </template>
             <el-menu-item index="book">书本列表</el-menu-item>
             <el-menu-item index="quality">优品列表</el-menu-item>
-            <el-menu-item index="slideshow">首页</el-menu-item>
-            <el-menu-item index="MenuItem">菜单选项</el-menu-item>
-            <el-menu-item index="acquisition">收书页</el-menu-item>
-            <el-menu-item index="Discount">折扣</el-menu-item>
-            <el-menu-item index="FreeShipping">包邮券</el-menu-item>
+            <el-menu-item index="indexBanner">首页</el-menu-item>
+            <el-menu-item index="menuItem">菜单选项</el-menu-item>
+            <el-menu-item index="collectionBook">收书页</el-menu-item>
+            <el-menu-item index="discount">折扣</el-menu-item>
+            <el-menu-item index="freeShip">包邮券</el-menu-item>
         </el-submenu>
         <el-submenu index="2">
             <template slot="title">
@@ -46,13 +46,13 @@
              <el-menu-item index="uploadImg">上传图片</el-menu-item>
              <el-menu-item index="vueEdit">文本编辑</el-menu-item>
         </el-submenu>
-        <el-submenu index="5">
+        <el-submenu index="5" v-if="admin">
             <template slot="title">
                 <i class="el-icon-setting"></i>
                 <span>维护</span>
             </template>
-            <el-menu-item index="adminSet" >管理员账号</el-menu-item>
-            <el-menu-item index="adminList" >操作日志</el-menu-item>
+            <el-menu-item index="admin" >管理员账号</el-menu-item>
+            <el-menu-item index="adminManageEvent" >操作日志</el-menu-item>
         </el-submenu>
         <el-submenu index="6">
             <template slot="title">
@@ -68,7 +68,9 @@
     export default {
         name: "Slider",
         data() {
-            return {}
+            return {
+                admin:window.sessionStorage.getItem('admin')
+            }
         },
     }
 </script>
